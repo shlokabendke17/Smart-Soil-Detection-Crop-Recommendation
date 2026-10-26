@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SoilSense — AI-Powered Soil Analytics & Smart Farming Platform</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <!-- Leaflet CSS for Multi-Location Mapping -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <!-- Chart.js for Data Visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Leaflet JS for Geospatial Map -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     APP SHELL: LEFT SIDEBAR NAV + MAIN CONTENT
+════════════════════════════════════════════════════════ -->
+<div class="app-shell">
+
+  <!-- ══ LEFT SIDEBAR ══ -->
+  <nav class="nav-sidebar" id="navSidebar">
+
+    <!-- Brand -->
+    <div class="sidebar-brand" onclick="showPage('dashboard')" style="cursor:pointer">
+      <div class="sidebar-logo">🌱</div>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title">SoilSense</span>
+        <span class="sidebar-brand-sub">AI Platform</span>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Navigation Links -->
+    <ul class="sidebar-links">
+      <li><button class="nav-link active" data-page="dashboard" onclick="showPage('dashboard')"><span class="nl-icon">🏠</span><span class="nl-label" data-i18n="nav_dashboard">Dashboard</span></button></li>
+      <li><button class="nav-link" data-page="analysis" onclick="showPage('analysis')"><span class="nl-icon">🔬</span><span class="nl-label" data-i18n="nav_analysis">Soil Analysis</span></button></li>
+      <li><button class="nav-link" data-page="experiment" onclick="showPage('experiment')"><span class="nl-icon">🧪</span><span class="nl-label" data-i18n="nav_simulation">Simulation Studio</span></button></li>
+      <li><button class="nav-link" data-page="comparative" onclick="showPage('comparative')"><span class="nl-icon">📊</span><span class="nl-label" data-i18n="nav_comparative">Comparative</span></button></li>
+      <li><button class="nav-link" data-page="timeseries" onclick="showPage('timeseries')"><span class="nl-icon">📈</span><span class="nl-label" data-i18n="nav_timeseries">Time-Series</span></button></li>
+      <li><button class="nav-link" data-page="mapping" onclick="showPage('mapping')"><span class="nl-icon">🌍</span><span class="nl-label" data-i18n="nav_geomap">Geo Map</span></button></li>
+      <li><button class="nav-link" data-page="notes" onclick="showPage('notes')"><span class="nl-icon">📑</span><span class="nl-label" data-i18n="nav_notes">Lab Notes</span></button></li>
+      <li><button class="nav-link" data-page="weather" onclick="showPage('weather')"><span class="nl-icon">🌤️</span><span class="nl-label" data-i18n="nav_weather">Weather</span></button></li>
+      <li><button class="nav-link" data-page="reports" onclick="showPage('reports')"><span class="nl-icon">📄</span><span class="nl-label" data-i18n="nav_reports">Reports</span></button></li>
+    </ul>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-lang">
+        <span class="nl-icon">🌐</span>
+        <select id="global-lang-select" onchange="changeLanguage(this.value)" title="Language">
+          <option value="en">English</option>
+          <option value="hi">हिंदी</option>
+          <option value="mr">मराठी</option>
+          <option value="gu">ગુજરાતી</option>
+          <option value="te">తెలుగు</option>
+          <option value="ta">தமிழ்</option>
+          <option value="bn">বাংলা</option>
+          <option value="es">Español</option>
+        </select>
+      </div>
+      <button class="sidebar-settings-btn" onclick="openSettings()" title="Settings">
+        <span class="nl-icon">⚙️</span><span class="nl-label">Settings</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ══ MAIN CONTENT ══ -->
+  <div class="app-body">
+
+  <!-- ─────────────────── PAGE 1: UPGRADED DASHBOARD ─────────────────── -->
+  <section id="page-dashboard" class="page active">
+    
+    <!-- Welcome Banner with Integrated Quick Actions -->
+    <div class="dash-welcome">
+      <div class="welcome-content">
+        <h2 data-i18n="dash_welcome_title">Welcome to SoilSense AI 🌱</h2>
+        <p data-i18n="dash_welcome_sub">Ensemble Random Forest ML (99.3% accuracy), live agro-meteorology, and precision agronomic decision support.</p>
+      </div>
+      <!-- Quick Actions Panel -->
+      <div class="quick-actions-panel">
+        <button class="quick-btn qb-primary" onclick="showPage('analysis')">
+          ➕ <span data-i18n="qa_new_test">New Soil Test</span>
+        </button>
+        <button class="quick-btn qb-secondary" onclick="showPage('comparative')">
+          📊 <span data-i18n="qa_compare_reports">Compare Reports</span>
+        </button>
+        <button class="quick-btn qb-accent" onclick="openCropGuideModal()">
+          🌾 <span data-i18n="qa_crop_guide">Crop Guide</span>
+        </button>
+        <button class="quick-btn qb-outline" onclick="showPage('experiment')">
+          🧪 <span data-i18n="qa_simulation">Simulator</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Top 4 Metric & Recommendation Cards -->
+    <div class="dashboard-cards-grid">
+      
+      <!-- Card 1: Soil Health Index -->
+      <div class="dash-metric-card dmc-health">
+        <div class="dmc-head">
+          <span class="dmc-icon">💚</span>
+          <span class="badge badge-success" id="dash-health-badge" data-i18n="badge_optimal">Optimal</span>
+        </div>
+        <div class="dmc-value" id="dash-health-score">78 <small>/100</small></div>
+        <div class="dmc-label" data-i18n="card_soil_health">Soil Health Index</div>
+        <div class="dmc-sub" id="dash-health-status" data-i18n="health_good_status">Good Biochemical Equilibrium</div>
+      </div>
+
+      <!-- Card 2: Top Crop Card (Best + Alternatives with Profit & Days) -->
+      <div class="dash-metric-card dmc-crop">
+        <div class="dmc-head">
+          <span class="dmc-icon">🌾</span>
+          <span class="badge badge-primary" data-i18n="badge_top_recommendations">Recommended</span>
+        </div>
+        <div class="top-crops-mini-list" id="dashTopCropsList">
+          <div class="top-crop-row best-crop">
+            <span class="tcr-name">🍈 Muskmelon <span class="badge-best" data-i18n="badge_best">BEST</span></span>
+            <span class="tcr-profit">₹85,000/ac</span>
+            <span class="tcr-days">85d</span>
+          </div>
+          <div class="top-crop-row">
+            <span class="tcr-name">🍅 Tomato <span class="badge-alt" data-i18n="badge_alt">ALT</span></span>
+            <span class="tcr-profit">₹95,000/ac</span>
+            <span class="tcr-days">75d</span>
+          </div>
+          <div class="top-crop-row">
+            <span class="tcr-name">🌽 Maize <span class="badge-alt" data-i18n="badge_alt">ALT</span></span>
+            <span class="tcr-profit">₹60,000/ac</span>
+            <span class="tcr-days">100d</span>
+          </div>
+        </div>
+        <div class="dmc-label" style="margin-top:8px" data-i18n="card_recommended_crops">Optimal Crop Selections</div>
+      </div>
+
+      <!-- Card 3: Expanded Risk Alerts Card -->
+      <div class="dash-metric-card dmc-alerts">
+        <div class="dmc-head">
+          <span class="dmc-icon">⚠️</span>
+          <select id="alertFilterSelect" class="alert-type-select" onchange="filterRiskAlerts(this.value)">
+            <option value="all">All Alerts</option>
+            <option value="disease">Fungal / Disease</option>
+            <option value="moisture">Moisture / Flood</option>
+            <option value="pest">Pest Risk</option>
+            <option value="nutrient">Soil Nutrients</option>
+          </select>
+        </div>
+        <div class="risk-alert-active-box" id="dashRiskAlertBox">
+          <div class="ra-title" id="raTitle">High Humidity & Fungal Risk</div>
+          <p class="ra-msg" id="raMsg">Humidity > 80% may promote fungal blast in susceptible vegetable foliage.</p>
+          <button class="btn-view-solution" onclick="openAlertSolutionModal()" data-i18n="btn_view_solution">
+            🔍 View Solution →
+          </button>
+        </div>
+        <div class="dmc-label" style="margin-top:8px" data-i18n="card_microclimate_alerts">Active Agro-Risk Alerts</div>
+      </div>
+
+      <!-- Card 4: Upgraded Weather Station Card -->
+      <div class="dash-metric-card dmc-weather">
+        <div class="dmc-head">
+          <span class="dmc-icon" id="dashWeatherIconEmoji">🌤️</span>
+          <span class="badge badge-info" id="dashWeatherCity">Pune, MH</span>
+        </div>
+        <div class="dmc-weather-row">
+          <div class="dmc-value" id="dashWeatherTemp">24.5°C</div>
+          <div class="dmc-weather-sub">
+            <span id="dashWeatherCond">Partly Cloudy</span> • 💧 <span id="dashWeatherHumidity">65%</span>
+          </div>
+        </div>
+        <div class="tomorrow-forecast-pill" id="dashTomorrowForecast">
+          <span>📅 Tomorrow: <strong>27°C / 22°C</strong> (2.5mm rain, 75%)</span>
+        </div>
+        <div class="farming-tip-strip" id="dashFarmingTip">
+          💡 <span id="dashFarmingTipText">Favorable window for standard scheduled irrigation.</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Mini Graph Section (Soil Health Trend & Rainfall Trend) -->
+    <div class="dashboard-charts-section">
+      <div class="mini-chart-panel">
+        <div class="mcp-head">
+          <h4>📈 <span data-i18n="chart_health_trend_title">Soil Health Trend (Last 5 Evaluations)</span></h4>
+          <span class="badge badge-success" data-i18n="badge_improving">+4.2% Growth</span>
+        </div>
+        <div class="mini-canvas-container">
+          <canvas id="miniChartHealth"></canvas>
+        </div>
+      </div>
+
+      <div class="mini-chart-panel">
+        <div class="mcp-head">
+          <h4>🌧️ <span data-i18n="chart_rainfall_trend_title">Weekly Precipitation & Moisture Trend</span></h4>
+          <span class="badge badge-info" id="weeklyRainSum">Total: 18.5 mm</span>
+        </div>
+        <div class="mini-canvas-container">
+          <canvas id="miniChartRainfall"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2-Column Section: Live Weather Station & Soil Improvement Tips Card -->
+    <div class="dash-grid" style="margin-top:1.5rem">
+      
+      <!-- Live Weather Search & Detailed Telemetry -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <h3>🌤️ <span data-i18n="weather_lookup_title">Agro-Weather Telemetry Station</span></h3>
+          <span class="badge badge-info" id="weatherProviderBadge">Live Sensor Telemetry</span>
+        </div>
+        <div class="weather-input-group">
+          <input id="dash-location-input" type="text" placeholder="Enter city or district (e.g. Pune, Ratnagiri, Nagpur, Nashik)..." />
+          <button class="btn btn-primary" onclick="dashFetchWeather()" data-i18n="btn_fetch">Fetch Weather</button>
+        </div>
+        <div id="dash-weather-result"></div>
+        <button class="btn btn-secondary use-weather-btn" id="dash-use-weather-btn" onclick="useWeatherInAnalysis()">
+          ✅ <span data-i18n="btn_use_weather">Use Live Telemetry in Soil Analysis →</span>
+        </button>
+      </div>
+
+      <!-- Soil Improvement Tips Card -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <h3>🧪 <span data-i18n="soil_tips_title">Precision Soil Improvement Advisory</span></h3>
+          <span class="badge badge-success" id="soilTipsPhBadge">pH 6.8 (Optimal 👍)</span>
+        </div>
+        <div class="soil-tips-container" id="dashSoilTipsContainer">
+          <div class="tip-item">
+            <span class="tip-icon">🌱</span>
+            <div class="tip-text">
+              <strong>Add Organic Compost (FYM) Monthly:</strong>
+              <p>Incorporate 2-3 tons/ha of farmyard manure to preserve humic acids and soil microbial biodiversity.</p>
+            </div>
+          </div>
+          <div class="tip-item">
+            <span class="tip-icon">💧</span>
+            <div class="tip-text">
+              <strong>Maintain 60–70% Root Zone Moisture:</strong>
+              <p>Prevents nutrient fixation and maintains active potassium mobility to feeder roots.</p>
+            </div>
+          </div>
+          <div class="tip-item">
+            <span class="tip-icon">🪵</span>
+            <div class="tip-text">
+              <strong>Mulch with Crop Residues:</strong>
+              <p>Reduces surface evapotranspiration by up to 35% and prevents topsoil crusting during high heat.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </section><!-- /page-dashboard -->
+
+
+  <!-- ─────────────────── PAGE 2: SOIL ANALYSIS ─────────────────── -->
+  <section id="page-analysis" class="page">
+    <div class="page-header">
+      <h2 data-i18n="analysis_page_title">Soil Diagnostic & Machine Learning Recommendations</h2>
+      <p data-i18n="analysis_page_sub">Precision agronomic evaluation, transparent Explainable AI (XAI) feature attribution, and immediate soil image classification.</p>
+    </div>
+
+    <div class="analysis-layout">
+
+      <!-- ═══ LEFT SIDEBAR: Report Upload ═══ -->
+      <div class="analysis-sidebar">
+        <div class="report-autofill-box" id="reportAutofillBox">
+          <div class="raf-header">
+            <div class="raf-title-area">
+              <span class="raf-icon">📋</span>
+              <div>
+                <strong data-i18n="report_upload_title">Auto-Fill from Soil Test Report</strong>
+                <span class="badge badge-success" style="font-size:0.7rem; margin-left:0.4rem;">AI Auto-Extract</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dropzone -->
+          <div class="raf-dropzone" id="reportDropzone" role="button" tabindex="0" aria-label="Upload soil test report">
+            <input type="file" id="reportFileInput" accept=".pdf,image/*,.csv,.txt" style="display:none" />
+            <div class="raf-dropzone-content" id="reportDropzoneContent">
+              <span class="raf-drop-icon">📄</span>
+              <div class="raf-drop-text">
+                <span class="raf-main-text"><strong>Click or Drag &amp; Drop your Soil Test Report</strong></span>
+                <span class="raf-hint-text">Accepts PDF (Govt Soil Health Card, Lab Certificates), JPG, PNG, or CSV</span>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="reportBrowseBtn">
+                📂 Browse File
+              </button>
+            </div>
+            
+            <!-- Loading indicator during extraction -->
+            <div class="raf-loading" id="reportLoading" style="display:none">
+              <div class="spinner-sm"></div>
+              <span id="reportLoadingText">Analyzing document &amp; extracting N-P-K, pH &amp; climatic variables...</span>
+            </div>
+          </div>
+
+          <!-- Extraction Feedback Banner -->
+          <div class="raf-result-banner" id="reportResultBanner" style="display:none">
+            <div class="rrb-icon-col" id="rrbIcon">✅</div>
+            <div class="rrb-body">
+              <div class="rrb-title" id="rrbTitle">Report Parameters Fetched Successfully!</div>
+              <div class="rrb-meta" id="rrbMeta"></div>
+              <div class="rrb-tags" id="rrbTags"></div>
+            </div>
+            <button type="button" class="rrb-dismiss" onclick="dismissReportBanner(event)" title="Clear report banner">✕</button>
+          </div>
+
+          <!-- Sample Reports Quick Ingestion -->
+          <div class="raf-samples">
+            <span class="raf-samples-label">💡 Test with sample reports:</span>
+            <div class="raf-sample-btns">
+              <button type="button" class="sample-chip" onclick="loadSampleReport('shc')">
+                📜 Govt Soil Health Card
+              </button>
+              <button type="button" class="sample-chip" onclick="loadSampleReport('lab_pdf')">
+                🔬 Agri-Lab PDF
+              </button>
+              <button type="button" class="sample-chip" onclick="loadSampleReport('alkaline')">
+                🌱 Alkaline Black Soil
+              </button>
+              <button type="button" class="sample-chip" onclick="loadSampleReport('csv')">
+                📊 Telemetry CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /analysis-sidebar -->
+
+      <!-- ═══ MAIN FORM PANEL ═══ -->
+      <div class="panel">
+        <div class="panel-title" data-i18n="input_panel_title">Soil & Atmospheric Parameters</div>
+
+        <!-- Soil Parameters -->
+        <div class="section-label">🧪 <span data-i18n="sec_soil_composition">Soil Chemical Composition</span></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="ph"><span data-i18n="lbl_ph">Soil pH</span> <span class="unit">(0 – 14)</span> <span class="badge badge-success autofill-tag" id="tag-ph" style="display:none">Report</span></label>
+            <input type="number" id="ph" step="0.1" min="0" max="14" value="6.5" />
+          </div>
+          <div class="form-group">
+            <label for="n"><span data-i18n="lbl_nitrogen">Nitrogen (N)</span> <span class="unit">kg/ha</span> <span class="badge badge-success autofill-tag" id="tag-n" style="display:none">Report</span></label>
+            <input type="number" id="n" step="1" min="0" max="140" value="65" />
+          </div>
+          <div class="form-group">
+            <label for="p"><span data-i18n="lbl_phosphorus">Phosphorus (P)</span> <span class="unit">kg/ha</span> <span class="badge badge-success autofill-tag" id="tag-p" style="display:none">Report</span></label>
+            <input type="number" id="p" step="1" min="0" max="145" value="48" />
+          </div>
+          <div class="form-group">
+            <label for="k"><span data-i18n="lbl_potassium">Potassium (K)</span> <span class="unit">kg/ha</span> <span class="badge badge-success autofill-tag" id="tag-k" style="display:none">Report</span></label>
+            <input type="number" id="k" step="1" min="0" max="205" value="45" />
+          </div>
+        </div>
+
+        <!-- Weather Data -->
+        <div class="section-label">🌤️ <span data-i18n="sec_agro_climatic">Agro-Climatic Variables</span></div>
+        <div class="weather-autofill-strip" id="weather-autofill-strip">
+          <span class="waf-info">🌍 <span id="autofill-location">Weather auto-filled</span></span>
+          <button class="waf-btn" onclick="showPage('weather')">Change station</button>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="temperature"><span data-i18n="lbl_temp">Temperature</span> <span class="unit">°C</span> <span class="badge badge-success autofill-tag" id="tag-temperature" style="display:none">Report</span></label>
+            <input type="number" id="temperature" step="0.1" min="-10" max="55" value="26.5" />
+          </div>
+          <div class="form-group">
+            <label for="humidity"><span data-i18n="lbl_humidity">Humidity / Moisture</span> <span class="unit">%</span> <span class="badge badge-success autofill-tag" id="tag-humidity" style="display:none">Report</span></label>
+            <input type="number" id="humidity" step="0.1" min="0" max="100" value="72.0" />
+          </div>
+          <div class="form-group span2">
+            <label for="rainfall"><span data-i18n="lbl_rainfall">Precipitation / Rainfall</span> <span class="unit">mm</span> <span class="badge badge-success autofill-tag" id="tag-rainfall" style="display:none">Report</span></label>
+            <input type="number" id="rainfall" step="0.1" min="0" max="500" value="110.0" />
+          </div>
+        </div>
+
+        <!-- Instant Soil Image Upload & Detection -->
+        <div class="section-label">📸 <span data-i18n="sec_soil_image">Soil Image Classification</span> <span class="badge badge-info">Instant CNN</span></div>
+        <div class="upload-zone" id="uploadZone" role="button" aria-label="Upload soil image">
+          <input type="file" id="soilImageInput" accept="image/*" hidden />
+          <div id="uploadPlaceholder" class="upload-placeholder">
+            <span class="upload-icon">📷</span>
+            <p><strong>Click or Drag &amp; Drop a soil photo</strong></p>
+            <small>Instantly classifies soil type with PyTorch CNN / spectral color model</small>
+          </div>
+          <img id="imagePreview" alt="Soil preview" />
+        </div>
+
+        <!-- Live Instant Detection Feedback Banner -->
+        <div id="instantImageResult" class="instant-image-result" style="display:none">
+          <div class="iir-header">
+            <div class="iir-title">
+              <span class="iir-icon">🏔️</span>
+              <span id="instantSoilType">Sandy Soil</span>
+            </div>
+            <span class="iir-conf" id="instantConfidence">94.2% Confidence</span>
+          </div>
+          <p class="iir-desc" id="instantSoilDesc">High sand particles, warm and aerated with fast drainage.</p>
+          <div class="iir-traits" id="instantSoilTraits">
+            <span class="trait-tag" id="traitTexture">Texture: Coarse</span>
+            <span class="trait-tag" id="traitDrainage">Drainage: Fast</span>
+            <span class="trait-tag" id="traitRetention">Retention: Low</span>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="btn-row">
+          <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeSoil()">
+            🔬 <span data-i18n="btn_run_analysis">Run Soil Analysis</span>
+          </button>
+          <button class="btn btn-secondary" id="reportBtn" onclick="generateReport()" disabled>
+            📄 <span data-i18n="btn_export_pdf">Export PDF Report</span>
+          </button>
+          <button class="btn btn-outline" onclick="saveToResearchNotesFromCurrent()">
+            📑 <span data-i18n="btn_save_note">Save as Note</span>
+          </button>
+        </div>
+      </div><!-- /input panel -->
+
+      <!-- Results panel -->
+      <div class="panel results-panel">
+        <div class="empty-state" id="emptyState">
+          <span class="big-icon">🌾</span>
+          <h3>Awaiting Diagnostic Trigger</h3>
+          <p>Fill in parameters and click <strong>Run Soil Analysis</strong> to compute the 100-point Soil Health composite, XAI explanations, and crop recommendations.</p>
+        </div>
+
+        <div id="resultsWrap" style="display:none">
+
+          <!-- Detailed Soil Parameter Breakdown -->
+          <div class="result-card">
+            <div class="card-head">
+              <h3>🔬 Detailed Soil Parameter Breakdown</h3>
+              <span class="badge badge-success">Agronomic Status</span>
+            </div>
+            <p class="section-subtext">Comprehensive comparison between measured actual parameters and benchmark ranges.</p>
+            
+            <div class="param-breakdown-table-wrap">
+              <table class="param-table">
+                <thead>
+                  <tr>
+                    <th>Nutrient / Parameter</th>
+                    <th>Measured Value</th>
+                    <th>Optimal Range</th>
+                    <th>Agronomic Status</th>
+                    <th>Index Score</th>
+                  </tr>
+                </thead>
+                <tbody id="paramBreakdownBody"></tbody>
+              </table>
+            </div>
+
+            <!-- Visual Comparison Bars -->
+            <div class="param-bars-grid" id="paramBarsGrid"></div>
+          </div>
+
+          <!-- Soil Health Score Gauge -->
+          <div class="result-card">
+            <div class="card-head">
+              <h3>💚 Soil Health Index Composite</h3>
+              <span id="healthLevelLbl" class="health-level-label lvl-good">Good</span>
+            </div>
+            <div class="health-gauge-row">
+              <div class="gauge-svg-wrap">
+                <svg viewBox="0 0 120 120" class="gauge-svg">
+                  <circle cx="60" cy="60" r="50" class="gauge-bg" />
+                  <circle cx="60" cy="60" r="50" id="healthArc" class="gauge-fill" />
+                </svg>
+                <div class="gauge-num">
+                  <span id="scoreNum">75</span><small>/100</small>
+                </div>
+              </div>
+              <div class="gauge-summary-text">
+                <h4 id="healthLevelHeading">Good Soil Equilibrium</h4>
+                <p id="healthSummaryText">Nutrient levels are well-aligned for standard cereal and pulse crop cycles.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Model Insights & Explainable AI (XAI) -->
+          <div class="result-card xai-card">
+            <div class="card-head">
+              <h3>🧠 Explainable AI (XAI) Model Insights & Transparency</h3>
+              <span class="badge badge-primary">Model Transparency</span>
+            </div>
+            <p class="section-subtext">Why specific crops were selected by the ensemble Random Forest algorithm:</p>
+
+            <div id="xaiCropsExplanationList" class="xai-explanation-list"></div>
+
+            <div class="feature-importance-section">
+              <h4>Feature Importance Distribution (Model Decision Weight)</h4>
+              <div class="feat-bars" id="featureImportanceBars"></div>
+            </div>
+          </div>
+
+          <!-- Recommended Crops List -->
+          <div class="result-card">
+            <div class="card-head">
+              <h3>🌾 Top Recommended Crops</h3>
+              <span class="badge badge-info">Ranked Candidates</span>
+            </div>
+            <div class="crop-rec-cards" id="cropRecCards"></div>
+          </div>
+
+          <!-- Fertilizer & Soil Improvement Advice -->
+          <div class="result-card">
+            <div class="card-head">
+              <h3>🌱 Fertilizer & Precision Agronomic Advisory</h3>
+              <span class="badge badge-success">Targeted Dosing</span>
+            </div>
+            <div id="fertilizerRecList"></div>
+            <div id="advisoryRecList" class="advisory-chips"></div>
+          </div>
+
+          <!-- Irrigation & Weather Risk Alerts -->
+          <div class="result-card">
+            <div class="card-head">
+              <h3>💧 Irrigation Guidance & Risk Alerts</h3>
+              <span class="badge badge-warning">Micro-Climate</span>
+            </div>
+            <div id="irrigationAdviceBox" class="irrigation-box"></div>
+            <div id="alertsContainer"></div>
+          </div>
+
+        </div><!-- /resultsWrap -->
+      </div><!-- /results panel -->
+    </div>
+  </section><!-- /page-analysis -->
+
+
+  <!-- ─────────────────── PAGE 3: SIMULATION STUDIO ─────────────────── -->
+  <section id="page-experiment" class="page">
+    <div class="page-header">
+      <h2>🧪 Experiment Mode & Simulation Sandbox</h2>
+      <p>Interactive research simulator: Adjust sliders in real time to simulate "What-If" agro-climatic scenarios and observe instant AI recalculation.</p>
+    </div>
+
+    <div class="experiment-layout">
+      <!-- Sliders Control Studio -->
+      <div class="panel exp-controls-panel">
+        <div class="panel-title">🎛️ Dynamic Parameter Sandbox</div>
+
+        <!-- Presets -->
+        <div class="exp-preset-row">
+          <span class="preset-label">Agronomic Presets:</span>
+          <button class="preset-btn" onclick="loadExperimentPreset('arid')">🏜️ Arid / Drought</button>
+          <button class="preset-btn" onclick="loadExperimentPreset('acidic')">🍋 Acidic Soil</button>
+          <button class="preset-btn" onclick="loadExperimentPreset('high_n')">🌿 High Nitrogen</button>
+          <button class="preset-btn" onclick="loadExperimentPreset('monsoon')">🌧️ Heavy Monsoon</button>
+          <button class="preset-btn" onclick="loadExperimentPreset('optimal')">✨ Ideal Equilibrium</button>
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label>Soil pH Level: <strong id="exp-ph-val">6.5</strong></label>
+            <span class="slider-sub">Optimal: 6.0 – 7.5</span>
+          </div>
+          <input type="range" id="exp-ph" min="3.5" max="10.0" step="0.1" value="6.5" oninput="onExperimentSliderChange()" />
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label>Nitrogen (N): <strong id="exp-n-val">65</strong> kg/ha</label>
+            <span class="slider-sub">Range: 0 – 140</span>
+          </div>
+          <input type="range" id="exp-n" min="0" max="140" step="1" value="65" oninput="onExperimentSliderChange()" />
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label>Phosphorus (P): <strong id="exp-p-val">48</strong> kg/ha</label>
+            <span class="slider-sub">Range: 0 – 145</span>
+          </div>
+          <input type="range" id="exp-p" min="0" max="145" step="1" value="48" oninput="onExperimentSliderChange()" />
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label>Potassium (K): <strong id="exp-k-val">45</strong> kg/ha</label>
+            <span class="slider-sub">Range: 0 – 205</span>
+          </div>
+          <input type="range" id="exp-k" min="0" max="205" step="1" value="45" oninput="onExperimentSliderChange()" />
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label>Precipitation / Rainfall: <strong id="exp-rainfall-val">110</strong> mm</label>
+            <span class="slider-sub">Range: 0 – 400 mm</span>
+          </div>
+          <input type="range" id="exp-rainfall" min="0" max="400" step="5" value="110" oninput="onExperimentSliderChange()" />
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label>Temperature: <strong id="exp-temp-val">26.5</strong> °C</label>
+            <span class="slider-sub">Range: 5 – 50 °C</span>
+          </div>
+          <input type="range" id="exp-temp" min="5" max="50" step="0.5" value="26.5" oninput="onExperimentSliderChange()" />
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-header">
+            <label>Humidity: <strong id="exp-humidity-val">72</strong> %</label>
+            <span class="slider-sub">Range: 10 – 100 %</span>
+          </div>
+          <input type="range" id="exp-humidity" min="10" max="100" step="1" value="72" oninput="onExperimentSliderChange()" />
+        </div>
+
+        <div class="btn-row" style="margin-top:18px">
+          <button class="btn btn-secondary" onclick="transferExpToAnalysis()">
+            📥 Transfer to Analysis Form
+          </button>
+          <button class="btn btn-outline" onclick="saveExpAsNote()">
+            📑 Save Simulation Note
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-Time Simulation Feedback View -->
+      <div class="panel exp-output-panel">
+        <div class="panel-title">⚡ Instant AI Simulation Response</div>
+        
+        <div class="exp-metrics-row">
+          <div class="exp-metric-card">
+            <span class="exp-m-lbl">Simulated Health Score</span>
+            <div class="exp-m-val" id="expScoreVal">78 / 100</div>
+            <span class="badge badge-success" id="expScoreLvl">Good</span>
+          </div>
+          <div class="exp-metric-card">
+            <span class="exp-m-lbl">Optimal Crop Candidate</span>
+            <div class="exp-m-val" id="expTopCropVal">Muskmelon</div>
+            <span class="badge badge-primary" id="expTopCropProb">88.4% Match</span>
+          </div>
+        </div>
+
+        <div class="result-card" style="margin-top:16px">
+          <h4>Simulation XAI Impact</h4>
+          <p id="expXaiReason">"High moisture + neutral pH favors muskmelon. Adjusting rainfall above 180mm shifts optimal selection towards Rice/Jute."</p>
+          
+          <h4 style="margin-top:14px">Candidate Probability Shift</h4>
+          <div id="expProbShiftBars" class="exp-prob-bars"></div>
+        </div>
+
+        <div class="result-card" style="margin-top:16px">
+          <h4>Simulated Parameter Health Index</h4>
+          <div id="expParamMeters" class="exp-param-meters"></div>
+        </div>
+      </div>
+    </div>
+  </section><!-- /page-experiment -->
+
+
+  <!-- ─────────────────── PAGE 4: COMPARATIVE ANALYSIS ─────────────────── -->
+  <section id="page-comparative" class="page">
+    <div class="page-header">
+      <h2>Comparative Agronomic Analysis</h2>
+      <p>Multi-point research comparison: Compare current vs previous runs, regional locations (Ratnagiri vs Pune), and crop nutrient requirements.</p>
+    </div>
+
+    <div class="comp-tabs">
+      <button class="comp-tab active" onclick="switchCompTab('locations')">🌍 Regional Comparison (Ratnagiri vs Pune)</button>
+      <button class="comp-tab" onclick="switchCompTab('runs')">⏱️ Historical Runs (Current vs Previous)</button>
+      <button class="comp-tab" onclick="switchCompTab('crops')">🌾 Crop Requirement Profiles</button>
+    </div>
+
+    <!-- Subtab 1: Locations Comparison -->
+    <div id="comp-sec-locations" class="comp-section active">
+      <div class="panel">
+        <div class="panel-header-row">
+          <h3>Geographic Soil & Climate Comparison</h3>
+          <div class="location-select-row">
+            <select id="comp-loc-a" onchange="renderLocationComparison()">
+              <option value="Ratnagiri">Ratnagiri (Coastal Zone)</option>
+              <option value="Pune" selected>Pune (Western Plateau)</option>
+              <option value="Nagpur">Nagpur (Vidarbha Black Soil)</option>
+              <option value="Nashik">Nashik (Northern Agro-Zone)</option>
+              <option value="Kolhapur">Kolhapur (Southern Fertile)</option>
+            </select>
+            <span class="vs-badge">VS</span>
+            <select id="comp-loc-b" onchange="renderLocationComparison()">
+              <option value="Ratnagiri" selected>Ratnagiri (Coastal Zone)</option>
+              <option value="Pune">Pune (Western Plateau)</option>
+              <option value="Nagpur">Nagpur (Vidarbha Black Soil)</option>
+              <option value="Nashik">Nashik (Northern Agro-Zone)</option>
+              <option value="Kolhapur">Kolhapur (Southern Fertile)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="comp-grid-2col" id="locationCompGrid"></div>
+      </div>
+    </div>
+
+    <!-- Subtab 2: Runs Comparison -->
+    <div id="comp-sec-runs" class="comp-section">
+      <div class="panel">
+        <h3>Current Analysis Run vs Baseline / Previous Run</h3>
+        <p class="section-subtext">Evaluate seasonal degradation, fertilizer impact, or parameter shifts over time.</p>
+        <div id="runsCompTableWrap"></div>
+      </div>
+    </div>
+
+    <!-- Subtab 3: Crop Profiles Comparison -->
+    <div id="comp-sec-crops" class="comp-section">
+      <div class="panel">
+        <div class="panel-header-row">
+          <h3>Crop Agronomic Requirements Benchmark</h3>
+          <div class="location-select-row">
+            <select id="comp-crop-a" onchange="renderCropComparison()">
+              <option value="rice" selected>Rice</option>
+              <option value="maize">Maize</option>
+              <option value="chickpea">Chickpea</option>
+              <option value="muskmelon">Muskmelon</option>
+              <option value="cotton">Cotton</option>
+              <option value="apple">Apple</option>
+              <option value="banana">Banana</option>
+              <option value="coffee">Coffee</option>
+            </select>
+            <span class="vs-badge">VS</span>
+            <select id="comp-crop-b" onchange="renderCropComparison()">
+              <option value="muskmelon" selected>Muskmelon</option>
+              <option value="rice">Rice</option>
+              <option value="maize">Maize</option>
+              <option value="chickpea">Chickpea</option>
+              <option value="cotton">Cotton</option>
+              <option value="apple">Apple</option>
+              <option value="banana">Banana</option>
+              <option value="coffee">Coffee</option>
+            </select>
+          </div>
+        </div>
+        <div id="cropCompTableWrap"></div>
+      </div>
+    </div>
+  </section><!-- /page-comparative -->
+
+
+  <!-- ─────────────────── PAGE 5: TIME-SERIES VISUALIZATION ─────────────────── -->
+  <section id="page-timeseries" class="page">
+    <div class="page-header">
+      <h2>Time-Series Agronomic Data Visualization</h2>
+      <p>Interactive longitudinal telemetry: Observe soil health trends, pH dynamics, and rainfall vs crop yield simulation curves.</p>
+    </div>
+
+    <div class="charts-grid">
+      <div class="panel chart-card">
+        <div class="card-head">
+          <h3>💚 Soil Health Index Dynamics (Seasonal Timeline)</h3>
+          <span class="badge badge-primary">Time-Series</span>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="chartSoilHealth"></canvas>
+        </div>
+      </div>
+
+      <div class="panel chart-card">
+        <div class="card-head">
+          <h3>🧪 Soil pH Fluctuation & Neutral Thresholds</h3>
+          <span class="badge badge-info">Buffer Capacity</span>
+        </div>
+        <div class="chart-canvas-wrap">
+          <canvas id="chartPhVariation"></canvas>
+        </div>
+      </div>
+
+      <div class="panel chart-card span-full">
+        <div class="card-head">
+          <h3>🌧️ Precipitation vs Crop Yield Sensitivity Curve</h3>
+          <span class="badge badge-success">Response Function</span>
+        </div>
+        <div class="chart-canvas-wrap chart-canvas-wide">
+          <canvas id="chartRainfallYield"></canvas>
+        </div>
+      </div>
+    </div>
+  </section><!-- /page-timeseries -->
+
+
+  <!-- ─────────────────── PAGE 6: GEOSPATIAL MAP ─────────────────── -->
+  <section id="page-mapping" class="page">
+    <div class="page-header">
+      <h2>Geospatial Multi-Location Mapping Studio</h2>
+      <p>Interactive spatial mapping: Plot agricultural research stations, compare regional soil and live weather telemetry, and assess local crop suitability.</p>
+    </div>
+
+    <div class="map-layout">
+      <div class="panel map-panel">
+        <div id="geoLeafletMap" class="geo-map-frame"></div>
+      </div>
+
+      <div class="panel map-sidebar-panel">
+        <div class="panel-title">📍 Selected Agro-Research Station</div>
+        
+        <div id="mapStationDetails">
+          <div class="station-meta-badge">
+            <h3 id="stationName">Pune Agro-Research Center</h3>
+            <span class="badge badge-success" id="stationSoilType">Black Clayey Soil</span>
+          </div>
+          <p id="stationDescription" class="section-subtext">Western Maharashtra plateau regime with moderate rainfall and high water retention.</p>
+          
+          <div class="station-telemetry-grid">
+            <div class="st-item"><span class="st-lbl">Soil pH</span><strong id="stPh">6.8</strong></div>
+            <div class="st-item"><span class="st-lbl">N-P-K (kg/ha)</span><strong id="stNPK">70 - 45 - 50</strong></div>
+            <div class="st-item"><span class="st-lbl">Avg Rainfall</span><strong id="stRainfall">85 mm</strong></div>
+            <div class="st-item"><span class="st-lbl">Health Index</span><strong id="stHealth">82 / 100</strong></div>
+          </div>
+
+          <div class="result-card" style="margin-top:16px">
+            <h4>Recommended Regional Crops</h4>
+            <div id="stCrops" class="crop-pill-row">
+              <span class="crop-pill">Cotton</span>
+              <span class="crop-pill">Soybean</span>
+              <span class="crop-pill">Sorghum</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="loadStationIntoAnalysis()">
+            📥 Load Station Data into Analysis →
+          </button>
+        </div>
+      </div>
+    </div>
+  </section><!-- /page-mapping -->
+
+
+  <!-- ─────────────────── PAGE 7: RESEARCH NOTES ─────────────────── -->
+  <section id="page-notes" class="page">
+    <div class="page-header">
+      <h2>Agronomic Laboratory & Research Notebook</h2>
+      <p>Document experimental observations, hypothesis testing, field trials, and diagnostic conclusions.</p>
+    </div>
+
+    <div class="notes-layout">
+      <div class="panel notes-form-panel">
+        <div class="panel-title">✍️ New Research Observation</div>
+        <div class="form-group">
+          <label for="noteTitle">Observation / Experiment Title</label>
+          <input type="text" id="noteTitle" placeholder="e.g. Trial Run 4: Muskmelon high potassium response" />
+        </div>
+        <div class="form-group">
+          <label for="noteAuthor">Researcher / Agronomist Name</label>
+          <input type="text" id="noteAuthor" value="Dr. Anuja Patil (Lead Agronomist)" />
+        </div>
+        <div class="form-group">
+          <label for="noteTags">Research Tags (comma separated)</label>
+          <input type="text" id="noteTags" value="Field Trial, Muskmelon, pH Balance" />
+        </div>
+        <div class="form-group">
+          <label for="noteContent">Detailed Observations & Diagnostic Remarks</label>
+          <textarea id="noteContent" rows="6" placeholder="Enter scientific observations, fertilizer treatment results, crop growth notes..."></textarea>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="saveResearchNote()">
+          💾 Save Observation to Notebook
+        </button>
+      </div>
+
+      <div class="panel notes-list-panel">
+        <div class="panel-header-row">
+          <div class="panel-title">📚 Laboratory Observations Log</div>
+          <button class="btn btn-outline btn-sm" onclick="exportNotesMarkdown()">📥 Export Notes (.md)</button>
+        </div>
+        <div id="notesContainer" class="notes-container"></div>
+      </div>
+    </div>
+  </section><!-- /page-notes -->
+
+
+  <!-- ─────────────────── PAGE 8: WEATHER (FULL VIEW) ─────────────────── -->
+  <section id="page-weather" class="page">
+    <div class="page-header">
+      <h2>Live Weather Station Lookup</h2>
+      <p>Fetch real-time micro-climatic telemetry and next-day forecasts.</p>
+    </div>
+
+    <div class="weather-page-layout">
+      <div class="panel">
+        <div class="weather-input-group">
+          <input id="weather-location-input" type="text" placeholder="Enter city, district or coordinates (e.g. Pune, Ratnagiri, Nagpur)..." />
+          <button class="btn btn-primary" onclick="fullFetchWeather()">Fetch Weather</button>
+        </div>
+
+        <div id="weather-result-section" style="margin-top:20px">
+          <div class="weather-hero-card">
+            <div class="wh-main">
+              <span id="w-icon-emoji" class="wh-emoji">🌤️</span>
+              <div class="wh-text-wrap">
+                <div class="wh-temp" id="w-temp">24.5°C</div>
+                <div class="wh-cond" id="w-cond">Partly Cloudy</div>
+                <div class="wh-loc" id="w-loc">Pune, Maharashtra, India</div>
+              </div>
+            </div>
+            <button class="btn btn-accent" onclick="useWeatherInAnalysis()">
+              ✅ Use These Values in Soil Analysis →
+            </button>
+          </div>
+
+          <div class="weather-stats-grid">
+            <div class="ws-card"><span class="ws-icon">💧</span><div class="ws-val" id="w-humidity">60 %</div><div class="ws-lbl">Humidity</div></div>
+            <div class="ws-card"><span class="ws-icon">🌧️</span><div class="ws-val" id="w-rainfall">0.0 mm</div><div class="ws-lbl">Precipitation</div></div>
+            <div class="ws-card"><span class="ws-icon">🌡️</span><div class="ws-val" id="w-feels">25°C</div><div class="ws-lbl">Feels Like</div></div>
+            <div class="ws-card"><span class="ws-icon">💨</span><div class="ws-val" id="w-wind">12 km/h</div><div class="ws-lbl">Wind Speed</div></div>
+            <div class="ws-card"><span class="ws-icon">☀️</span><div class="ws-val" id="w-uv">5</div><div class="ws-lbl">UV Index</div></div>
+            <div class="ws-card"><span class="ws-icon">☁️</span><div class="ws-val" id="w-cloud">20 %</div><div class="ws-lbl">Cloud Cover</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section><!-- /page-weather -->
+
+
+  <!-- ─────────────────── PAGE 9: REPORTS ─────────────────── -->
+  <section id="page-reports" class="page">
+    <div class="page-header">
+      <h2>Exported Soil Diagnostics Reports</h2>
+      <p>Download and review generated scientific PDF soil inspection documents.</p>
+    </div>
+
+    <div class="panel">
+      <div id="reportsListContainer">
+        <p class="muted-hint">No reports generated in this session yet. Run an analysis and click <strong>Generate PDF</strong>.</p>
+      </div>
+    </div>
+  </section><!-- /page-reports -->
+
+</div><!-- /app-body -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     “ASK SOILSENSE” FLOATING CHATBOT WIDGET
+══════════════════════════════════════════════════════════ -->
+<div class="chat-fab-wrap">
+  <!-- Circular Trigger -->
+  <button class="chat-fab" id="chatFabBtn" onclick="toggleChatBot()" title="Ask SoilSense AI Chat">
+    <span class="chat-fab-icon">🤖</span>
+    <span class="chat-fab-pulse"></span>
+  </button>
+
+  <!-- Expanded Chat Modal/Window -->
+  <div class="chat-window" id="chatWindow" style="display:none">
+    <div class="chat-header">
+      <div class="chat-header-title">
+        <span class="chat-bot-avatar">🌱</span>
+        <div>
+          <strong>Ask SoilSense AI</strong>
+          <small class="chat-status-online">Online • Agronomic Assistant</small>
+        </div>
+      </div>
+      <button class="chat-close-btn" onclick="toggleChatBot()">✕</button>
+    </div>
+
+    <!-- Suggested Quick Chips -->
+    <div class="chat-quick-chips">
+      <button class="chat-chip" onclick="askChatbotQuestion('Best crop for my soil right now?')">🌾 Best crop now?</button>
+      <button class="chat-chip" onclick="askChatbotQuestion('How to increase soil fertility?')">🧪 Increase soil fertility?</button>
+      <button class="chat-chip" onclick="askChatbotQuestion('How do I fix acidic soil?')">🍋 Fix acidic soil?</button>
+      <button class="chat-chip" onclick="askChatbotQuestion('What is the ideal moisture level?')">💧 Ideal moisture?</button>
+    </div>
+
+    <!-- Message Bubble Stream -->
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-bubble bot-bubble">
+        👋 Hello! I am <strong>SoilSense AI</strong>. Ask me anything about crop selection, fertilizer balancing, pH amendments, or micro-climatic pest risks!
+      </div>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="chat-input-bar">
+      <input type="text" id="chatInput" placeholder="Ask about soil, crops, fertilizer..." onkeydown="if(event.key==='Enter') sendChatMessage()" />
+      <button class="chat-send-btn" onclick="sendChatMessage()">➤</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     RISK ALERT SOLUTION MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="alert-solution-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="solutionModalTitle">⚠️ Agronomic Risk Solution</h3>
+      <button class="modal-close-btn" onclick="closeAlertSolutionModal()">✕</button>
+    </div>
+    <div class="modal-body" id="solutionModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeAlertSolutionModal()">Understood</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     CROP GUIDE MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="crop-guide-modal">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3>🌾 Precision Crop Cultivation Guide</h3>
+      <button class="modal-close-btn" onclick="closeCropGuideModal()">✕</button>
+    </div>
+    <div class="modal-body" id="cropGuideModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeCropGuideModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SETTINGS MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="settings-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>⚙️ Platform & API Settings</h3>
+      <button class="modal-close-btn" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="inp-api-key">WeatherAPI.com Key <span class="unit">(Optional — Open-Meteo works automatically)</span></label>
+        <input type="text" id="inp-api-key" placeholder="Enter optional WeatherAPI key" />
+      </div>
+      <div class="form-group">
+        <label for="inp-def-location">Default Station Location</label>
+        <input type="text" id="inp-def-location" placeholder="e.g. Pune, Maharashtra" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification container -->
+<div id="toast" class="toast"></div>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display:none">
+  <div class="spinner"></div>
+  <p id="loadingMsg">Analyzing soil matrix…</p>
+</div>
+
+<!-- Core Script -->
+<script src="/static/app.js"></script>
+  </div><!-- /app-body -->
+</div><!-- /app-shell -->
+</body>
+</html>

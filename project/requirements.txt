@@ -1,0 +1,16 @@
+# Core (required, all working end-to-end in this delivery)
+pandas
+scikit-learn
+joblib
+reportlab
+Pillow
+pypdf
+
+# Web framework
+flask>=3.0
+flask-cors
+
+# Optional (only needed to train/run the real CNN -- see models/cnn_soil_classifier.py)
+# Without these, the system automatically uses the color-heuristic fallback
+# classifier in models/fallback_image_classifier.py.
+# tensorflow>=2.13

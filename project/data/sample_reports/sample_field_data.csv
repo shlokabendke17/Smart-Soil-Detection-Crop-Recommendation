@@ -1,0 +1,9 @@
+parameter,value,unit,rating
+ph,6.9,-,Optimal
+nitrogen,68.0,kg/ha,Medium
+phosphorus,46.0,kg/ha,Medium
+potassium,52.0,kg/ha,High
+temperature,25.8,C,Normal
+humidity,74.0,%,Adequate
+rainfall,118.0,mm,Moderate
+soil_type,Loamy Soil,-,Medium Texture
